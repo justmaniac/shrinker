@@ -1,4 +1,7 @@
-package shrinker;
+//javac Shrinker.java
+//java Shrinker -c filename
+
+//package shrinker;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -15,14 +18,23 @@ public class Shrinker {
     static int Bl_Length;
 
     public static void main(String[] args) throws IOException {
-        if (args[0].equals("-a")) Compress(args[1]);
-        else
-            if (args[0].equals("-e")) Decompress(args[1]);
+        if(args.length != 0){
+            if (args[0].equals("-a"))
+                Compress(args[1]);
             else
-                if (args[0].equals("-n")) NewCompress(args[1]);
-                else System.out.println("-a\tСжать файл\n-e\tИзвлечь файл\n-n\tНовый алгоритм сжатия\n");
+                if (args[0].equals("-e"))
+                    Decompress(args[1]);
+                else
+                    if (args[0].equals("-n"))
+                        NewCompress(args[1]);
+                    else 
+                        System.out.println("Неизвестный аргумент\n");
+        }
+        else 
+            System.out.println("-a\tСжать файл\n-e\tИзвлечь файл\n-n\tНовый алгоритм сжатия\n");
+        
     }
-    
+
     public static void Decompress(String filename) throws IOException {
         pr("Распаковываем файл \"" + filename + "\"\n");
         if(!filename.matches(".*\\.shrinked-\\d+$")) {
@@ -68,7 +80,7 @@ public class Shrinker {
             int indata_start_re=8+Block_Count*4;
             int indata_start_data=indata_start_re + Block_Size;
             int indata_i=indata_start_data;
-            
+
             boolean continue_flag;
             while (outdata_i<Target_Size) {
                 continue_flag=false;
@@ -93,7 +105,7 @@ public class Shrinker {
             }
             indata=outdata;
         }
-        
+
         if (indata.length > 0) {
             // вывод полученных данных
 //            for (int i=0; i<outdata.size(); i++) {
@@ -105,7 +117,7 @@ public class Shrinker {
             SaveFile(outfile, indata);
         }
     }
-    
+
     public static void Compress(String filename) throws IOException {
         pr("Архивируем файл \"" + filename + "\"\n");
         byte[] indata = LoadFile(filename);
@@ -222,17 +234,6 @@ public class Shrinker {
         return returnarray;
     }
 
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     public static void NewCompress(String filename) throws IOException {
         pr("Архивируем файл \"" + filename + "\"\n");
         byte[] indata = LoadFile(filename);
@@ -289,7 +290,6 @@ public class Shrinker {
                         R.add(Object);
                     }
                 } else pr("-\n");
-
             } // Dst_Start
         } // Src_Start
 
@@ -340,15 +340,6 @@ public class Shrinker {
         }
         return Result;
     }
-
-
-
-
-
-
-
-
-
 
     public static byte[] LoadFile (String Path) throws IOException {
         byte[] x = null;
