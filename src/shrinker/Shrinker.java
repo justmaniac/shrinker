@@ -19,26 +19,25 @@ public class Shrinker {
 
     public static void main(String[] args) throws IOException {
         if(args.length != 0){
-            if (args[0].equals("-a"))
+            if (args[0].equals("-c"))
                 Compress(args[1]);
             else
-                if (args[0].equals("-e"))
+                if (args[0].equals("-x"))
                     Decompress(args[1]);
                 else
-                    if (args[0].equals("-n"))
+                    if (args[0].equals("-c2"))
                         NewCompress(args[1]);
                     else 
                         System.out.println("Неизвестный аргумент\n");
         }
         else 
-            System.out.println("-a\tСжать файл\n-e\tИзвлечь файл\n-n\tНовый алгоритм сжатия\n");
-        
+            System.out.println("-c\tСжать файл\n-x\tИзвлечь файл\n-c2\tНовый алгоритм сжатия\n");
     }
 
     public static void Decompress(String filename) throws IOException {
         pr("Распаковываем файл \"" + filename + "\"\n");
         if(!filename.matches(".*\\.shrinked-\\d+$")) {
-            pr("Имя файла не соответствуте шаблону\n");
+            pr("Имя файла не соответствует шаблону\n");
             return;
         }
 
@@ -57,10 +56,12 @@ public class Shrinker {
             pr("======================== " + prohod + "\n");
             pr("Размер входных данных: " + indata.length + "\n");
 
-            for (int i=0; i<4; i++) q[i] = indata[i];
+            for (int i=0; i<4; i++)
+                q[i] = indata[i];
             int Block_Size=byteArrayToInt(q);
             pr("Длина блока: " + Block_Size + "\n");
-            for (int i=0; i<4; i++) q[i] = indata[i+4];
+            for (int i=0; i<4; i++)
+                q[i] = indata[i+4];
             int Block_Count=byteArrayToInt(q);
             pr("Количество повторов: " + Block_Count + "\n");
             int Target_Size = indata.length - 8 - Block_Count*4 + Block_Size*(Block_Count-1);
@@ -68,13 +69,15 @@ public class Shrinker {
             pr("------------------------\n");
 
             byte[] outdata = new byte[Target_Size];
-            
+
             int[] Retries = new int[Block_Count];
             for (int i=0; i<Block_Count; i++) {
-                for(int j=0; j<4; j++) q[j]=indata[8+i*4+j];
+                for(int j=0; j<4; j++)
+                    q[j]=indata[8+i*4+j];
                 Retries[i]=byteArrayToInt(q);
             }
-            for (int i=0; i<Retries.length; i++) pr("Повтор: " + Retries[i] + "\n");   // вывести повторы
+            for (int i=0; i<Retries.length; i++)
+                pr("Повтор: " + Retries[i] + "\n");   // вывести повторы
 
             int outdata_i=0;
             int indata_start_re=8+Block_Count*4;
@@ -88,18 +91,19 @@ public class Shrinker {
                     if (outdata_i==Retries[j]) {
                         for (int k=0; k<Block_Size; k++) {
                             outdata[outdata_i+k]=indata[indata_start_re + k];
-                            pr("outdata_i+k: " + (int)(outdata_i+k) + "\tindata_start_re + k: " + (int)(indata_start_re + k) + "\t char: " + (char)indata[indata_start_re + k] + "\n");
+//                            pr("outdata_i+k: " + (int)(outdata_i+k) + "\tindata_start_re + k: " + (int)(indata_start_re + k) + "\t char: " + (char)indata[indata_start_re + k] + "\n");
                         }
                         outdata_i=outdata_i+Block_Size;
                         continue_flag=true;
                         break;
                     }
                 }
-                if(continue_flag) continue;
-                
-                pr("outdata_i: " + outdata_i + "\tindata_i:            " + indata_i + "\tchar: " + (char)indata[indata_i] + "\n");
+                if(continue_flag)
+                    continue;
+
+                // pr("outdata_i: " + outdata_i + "\tindata_i:            " + indata_i + "\tchar: " + (char)indata[indata_i] + "\n");
                 outdata[outdata_i]=indata[indata_i];
-                
+
                 outdata_i++;
                 indata_i++;
             }
@@ -230,6 +234,7 @@ public class Shrinker {
                 break;
             }
             Bl_Length--;
+            // Bl_Length/=2;
         } // Block_Length
         return returnarray;
     }
