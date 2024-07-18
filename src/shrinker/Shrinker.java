@@ -123,7 +123,7 @@ public class Shrinker {
     }
 
     public static void Compress(String filename) throws IOException {
-        pr("Архивируем файл \"" + filename + "\"\n");
+        pr("Архивируем файл \"" + filename + "\"\n\n");
         byte[] indata = LoadFile(filename);
         int file_size=indata.length;
         pr("Размер файла:\t" + file_size + "\n");
@@ -133,7 +133,7 @@ public class Shrinker {
         ArrayList RetriesAL;
 
         while(true) {
-            outdata = new ArrayList();
+            outdata = new ArrayList<Byte>();
             RetriesAL = FindRetries(indata);
             if (RetriesAL.isEmpty())
                 break;
@@ -168,7 +168,7 @@ public class Shrinker {
                     outdata.add(indata[i]);
             }
 
-            pr("============================== " + ++depth + "\n");
+            pr("================================ " + ++depth + "\n");
             pr("Размер исходных данных: " + indata.length + "\n");
             pr("Длина блока: " + RetriesAL.get(0) + "\n");
             pr("Количество повторов: " + (RetriesAL.size()-1) + "\n");
@@ -177,7 +177,7 @@ public class Shrinker {
                 pr("Начало блока повтора: " + RetriesAL.get(i) + "\n");
             pr("Итоговый размер: " + outdata.size() + "\n");
             pr("Сжатие: " + (int)((float)outdata.size()/(float)indata.length*100) + "%(" +
-                    (int)((float)outdata.size()/(float)file_size*100) + "%)\n==============================\n");
+                    (int)((float)outdata.size()/(float)file_size*100) + "%)\n--------------------------------\n");
 
             indata = new byte[outdata.size()];
             for (int i=0; i<indata.length; i++)
@@ -191,7 +191,7 @@ public class Shrinker {
 //                System.out.println(outdata.get(i) + "\t" + (char)(byte)outdata.get(i));
 //            }
             String outfile=filename + ".shrinked-" + depth;
-            pr("Архив: " + outfile + "\n");
+            pr("\nАрхив: " + outfile + "\n");
             SaveFile(outfile, indata);
         }
     }
@@ -199,16 +199,16 @@ public class Shrinker {
     public static ArrayList FindRetries(byte[] indata) {
         int Input_Length=indata.length;
 
-        ArrayList returnarray = new ArrayList();
+        ArrayList<Integer> returnarray = new ArrayList<Integer>();
         while (Bl_Length>=MIN_BLOCK_SIZE) {
             pr("Длина блока:\t" + Bl_Length + "\n");
             int max_count=0;
             int max_start=0;
-            ArrayList<Integer> max_array = new ArrayList();
+            ArrayList<Integer> max_array = new ArrayList<Integer>();
 
             for (int Src_Start=0; Src_Start<=Input_Length-Bl_Length*2 ; Src_Start++) {
 //                pr("\tНачало исходного блока:\t" + Src_Start + "\n");
-                ArrayList<Integer> array = new ArrayList();
+                ArrayList<Integer> array = new ArrayList<Integer>();
                 for (int Dst_Start=Src_Start+Bl_Length; Dst_Start<(Input_Length-Bl_Length+1); Dst_Start++) {
 //                    pr("\t\tНачало тестового блока:\t" + Dst_Start + "\n");
 
@@ -224,23 +224,29 @@ public class Shrinker {
                         Dst_Start = Dst_Start+Bl_Length-1;
                     }
                 } // Dst_Start
-//                pr("\tКоличество:\t\t" + array.size() + "\n\t-------------------------\n");
+//                pr("\tКоличество:\t\t" + array.size() + "\n\t--------------------------------\n");
                 if (array.size()>max_count) {
                     max_count=array.size();
                     max_start=Src_Start;
                     max_array=array;
                 }
             } // Src_Start
+
             int predict_size = Input_Length - Bl_Length*(max_array.size()) + 4*(max_array.size()+3);
-            if (max_count > 0 && Input_Length > predict_size ) { // проверка целесообразности
-                pr("Предполагаемый конечный размер: " + predict_size + "\n");
-                returnarray.add(Bl_Length);    // длина блока
-                returnarray.add(max_start);       // адрес исходного блока
-                for (int i=0; i<max_array.size(); i++) returnarray.add(max_array.get(i));   // адреса повторных блоков
-                break;
+            if (max_count > 0) {
+                pr("\tНайдено блоков: " + max_count + "\n");
+                if (Input_Length > predict_size) { // проверка целесообразности
+                    pr("Предполагаемый конечный размер: " + predict_size + "\n");
+                    returnarray.add(Bl_Length);    // длина блока
+                    returnarray.add(max_start);       // адрес исходного блока
+                    for (int i=0; i<max_array.size(); i++)
+                        returnarray.add(max_array.get(i));   // адреса повторных блоков
+                    break;
+                }
             }
-            Bl_Length--;
-            // Bl_Length/=2;
+
+            // Bl_Length--;
+            Bl_Length/=2;
         } // Block_Length
         return returnarray;
     }
