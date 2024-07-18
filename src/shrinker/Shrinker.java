@@ -25,13 +25,13 @@ public class Shrinker {
                 if (args[0].equals("-x"))
                     Decompress(args[1]);
                 else
-                    if (args[0].equals("-c2"))
-                        NewCompress(args[1]);
-                    else 
+                    // if (args[0].equals("-c2"))
+                    //     NewCompress(args[1]);
+                    // else 
                         System.out.println("Неизвестный аргумент\n");
         }
         else 
-            System.out.println("-c\tСжать файл\n-x\tИзвлечь файл\n-c2\tНовый алгоритм сжатия\n");
+            System.out.println("-c\tСжать файл\n-x\tИзвлечь файл\n");
     }
 
     public static void Decompress(String filename) throws IOException {
@@ -135,18 +135,23 @@ public class Shrinker {
         while(true) {
             outdata = new ArrayList();
             RetriesAL = FindRetries(indata);
-            if (RetriesAL.isEmpty()) break;
+            if (RetriesAL.isEmpty())
+                break;
 
             byte[] q;   // вспомогательный массив
             q = IntToByteArray((int)RetriesAL.get(0));      // длина блока
-            for (int i=0; i<4; i++) outdata.add(q[i]);
+            for (int i=0; i<4; i++)
+                outdata.add(q[i]);
             q = IntToByteArray(RetriesAL.size()-1);         // количество блоков
-            for (int i=0; i<4; i++) outdata.add(q[i]);
+            for (int i=0; i<4; i++)
+                outdata.add(q[i]);
             q = IntToByteArray((int)RetriesAL.get(1));      // исходный блок
-            for (int i=0; i<4; i++) outdata.add(q[i]);
+            for (int i=0; i<4; i++)
+                outdata.add(q[i]);
             for (int j=2; j<RetriesAL.size(); j++) {
                 q = IntToByteArray((int)RetriesAL.get(j));  // повторы
-                for (int i=0; i<4; i++) outdata.add(q[i]);
+                for (int i=0; i<4; i++)
+                    outdata.add(q[i]);
             }
             for (int i=(int)RetriesAL.get(1); i<((int)RetriesAL.get(1)+(int)RetriesAL.get(0)); i++)
                 outdata.add(indata[i]); // архивируемый блок
@@ -159,21 +164,24 @@ public class Shrinker {
                             (i<((int)RetriesAL.get(j)+(int)RetriesAL.get(0)))
                             )
                         f=true;
-                if (!f) outdata.add(indata[i]);
+                if (!f)
+                    outdata.add(indata[i]);
             }
 
             pr("============================== " + ++depth + "\n");
             pr("Размер исходных данных: " + indata.length + "\n");
             pr("Длина блока: " + RetriesAL.get(0) + "\n");
             pr("Количество повторов: " + (RetriesAL.size()-1) + "\n");
-            pr("Начало блока повтора: " + RetriesAL.get(1) + "\n");
-            for (int i=2; i<RetriesAL.size(); i++) pr("Начало блока повтора: " + RetriesAL.get(i) + "\n");
+            pr("Начало оригинального блока: " + RetriesAL.get(1) + "\n");
+            for (int i=2; i<RetriesAL.size(); i++)
+                pr("Начало блока повтора: " + RetriesAL.get(i) + "\n");
             pr("Итоговый размер: " + outdata.size() + "\n");
             pr("Сжатие: " + (int)((float)outdata.size()/(float)indata.length*100) + "%(" +
-                    (int)((float)outdata.size()/(float)file_size*100) + "%)\n");
+                    (int)((float)outdata.size()/(float)file_size*100) + "%)\n==============================\n");
 
             indata = new byte[outdata.size()];
-            for (int i=0; i<indata.length; i++) indata[i]=outdata.get(i);
+            for (int i=0; i<indata.length; i++)
+                indata[i]=outdata.get(i);
         }
 
         if (indata.length > 0) {
@@ -198,12 +206,10 @@ public class Shrinker {
             int max_start=0;
             ArrayList<Integer> max_array = new ArrayList();
 
-            int tmp1=Input_Length-Bl_Length*2;
-            for (int Src_Start=0; Src_Start<=tmp1 ; Src_Start++) {
+            for (int Src_Start=0; Src_Start<=Input_Length-Bl_Length*2 ; Src_Start++) {
 //                pr("\tНачало исходного блока:\t" + Src_Start + "\n");
                 ArrayList<Integer> array = new ArrayList();
-                int tmp2=Input_Length-Bl_Length+1;
-                for (int Dst_Start=Src_Start+Bl_Length; Dst_Start<tmp2; Dst_Start++) {
+                for (int Dst_Start=Src_Start+Bl_Length; Dst_Start<(Input_Length-Bl_Length+1); Dst_Start++) {
 //                    pr("\t\tНачало тестового блока:\t" + Dst_Start + "\n");
 
                     boolean f=true;
@@ -225,9 +231,9 @@ public class Shrinker {
                     max_array=array;
                 }
             } // Src_Start
-            if (max_count > 0 &&
-                    Input_Length > (Input_Length - Bl_Length*(max_array.size()) + 4*(max_array.size()+3)) ) { // проверка целесообразности
-                pr("Предполагаемый конечный размер: " + (Input_Length - Bl_Length*(max_array.size()) + 4*(max_array.size()+3)) + "\n");
+            int predict_size = Input_Length - Bl_Length*(max_array.size()) + 4*(max_array.size()+3);
+            if (max_count > 0 && Input_Length > predict_size ) { // проверка целесообразности
+                pr("Предполагаемый конечный размер: " + predict_size + "\n");
                 returnarray.add(Bl_Length);    // длина блока
                 returnarray.add(max_start);       // адрес исходного блока
                 for (int i=0; i<max_array.size(); i++) returnarray.add(max_array.get(i));   // адреса повторных блоков
@@ -239,112 +245,112 @@ public class Shrinker {
         return returnarray;
     }
 
-    public static void NewCompress(String filename) throws IOException {
-        pr("Архивируем файл \"" + filename + "\"\n");
-        byte[] indata = LoadFile(filename);
-        int In_Length=indata.length;
-        pr("Размер файла:\t" + In_Length + "\n");
+    // public static void NewCompress(String filename) throws IOException {
+    //     pr("Архивируем файл \"" + filename + "\"\n");
+    //     byte[] indata = LoadFile(filename);
+    //     int In_Length=indata.length;
+    //     pr("Размер файла:\t" + In_Length + "\n");
 
-        Bl_Length=3;
-        ArrayList<BlocksClass> R = new ArrayList();
+    //     Bl_Length=3;
+    //     ArrayList<BlocksClass> R = new ArrayList();
 
-        int tmp1=In_Length-Bl_Length*2;
-        for (int Src_Start=0; Src_Start<=tmp1 ; Src_Start++) {
-            pr("\tНачало исходного блока:\t" + Src_Start + "\n");
-            int tmp2=In_Length-Bl_Length+1;
-            for (int Dst_Start=Src_Start+Bl_Length; Dst_Start<tmp2; Dst_Start++) {
-                pr("\t\tНачало тестового блока:\t" + Dst_Start + "\t");
+    //     int tmp1=In_Length-Bl_Length*2;
+    //     for (int Src_Start=0; Src_Start<=tmp1 ; Src_Start++) {
+    //         pr("\tНачало исходного блока:\t" + Src_Start + "\n");
+    //         int tmp2=In_Length-Bl_Length+1;
+    //         for (int Dst_Start=Src_Start+Bl_Length; Dst_Start<tmp2; Dst_Start++) {
+    //             pr("\t\tНачало тестового блока:\t" + Dst_Start + "\t");
 
-                boolean f=true;
-                for (int n=0; n<Bl_Length; n++) {
-                    if (indata[Src_Start+n] != indata[Dst_Start+n]) {
-                        f=false;
-                        break;
-                    }
-                }
-                if (f) {
-                    pr("+");
-                    byte[] Block = new byte[Bl_Length];
-                    for(int i=0; i<Bl_Length; i++) Block[i]=indata[Src_Start+i];
+    //             boolean f=true;
+    //             for (int n=0; n<Bl_Length; n++) {
+    //                 if (indata[Src_Start+n] != indata[Dst_Start+n]) {
+    //                     f=false;
+    //                     break;
+    //                 }
+    //             }
+    //             if (f) {
+    //                 pr("+");
+    //                 byte[] Block = new byte[Bl_Length];
+    //                 for(int i=0; i<Bl_Length; i++) Block[i]=indata[Src_Start+i];
 
-                    FindBlockClass Result = FindBlock(R, Block);
+    //                 FindBlockClass Result = FindBlock(R, Block);
 
-                    pr(" f: " + Result.f + "; i: " + Result.i + "\n");
+    //                 pr(" f: " + Result.f + "; i: " + Result.i + "\n");
 
-                    if (Result.f) {       // блок найден, добавляем новый адрес повтора
-                        BlocksClass Object = R.get(Result.i);
+    //                 if (Result.f) {       // блок найден, добавляем новый адрес повтора
+    //                     BlocksClass Object = R.get(Result.i);
 
-                        if (Dst_Start > Object.Starts[Object.Starts.length-1]) {
-                            int[] oldstarts = Object.Starts;
-                            int newlength = Object.Starts.length+1;
+    //                     if (Dst_Start > Object.Starts[Object.Starts.length-1]) {
+    //                         int[] oldstarts = Object.Starts;
+    //                         int newlength = Object.Starts.length+1;
 
-                            Object.Starts = new int[newlength];
+    //                         Object.Starts = new int[newlength];
 
-                            for (int j=0; j<oldstarts.length; j++) Object.Starts[j] = oldstarts[j];
-                            Object.Starts[newlength-1] = Dst_Start;
-                        }
+    //                         for (int j=0; j<oldstarts.length; j++) Object.Starts[j] = oldstarts[j];
+    //                         Object.Starts[newlength-1] = Dst_Start;
+    //                     }
 
-                        Dst_Start = Dst_Start+Bl_Length-1;
-                    }
-                    else {              // блок не найден, создаём новый объект
-                        BlocksClass Object = new BlocksClass();
-                        Object.Block = Block;
-                        Object.Starts = new int[2];
-                        Object.Starts[0] = Src_Start;
-                        Object.Starts[1] = Dst_Start;
-                        R.add(Object);
-                    }
-                } else pr("-\n");
-            } // Dst_Start
-        } // Src_Start
+    //                     Dst_Start = Dst_Start+Bl_Length-1;
+    //                 }
+    //                 else {              // блок не найден, создаём новый объект
+    //                     BlocksClass Object = new BlocksClass();
+    //                     Object.Block = Block;
+    //                     Object.Starts = new int[2];
+    //                     Object.Starts[0] = Src_Start;
+    //                     Object.Starts[1] = Dst_Start;
+    //                     R.add(Object);
+    //                 }
+    //             } else pr("-\n");
+    //         } // Dst_Start
+    //     } // Src_Start
 
-        pr("################################ R\n");
-        for (int i=0; i<R.size(); i++) {
-            pr("### " + i + "\n");
-            for (int j=0; j<R.get(i).Block.length; j++) {
-                pr(R.get(i).Block[j] + "\t" + (char)R.get(i).Block[j] + "\n");
-            }
-            pr("---\n");
-            for (int j=0; j<R.get(i).Starts.length; j++) {
-                pr(R.get(i).Starts[j] + "\n");
-            }
-        }
-    }
+    //     pr("################################ R\n");
+    //     for (int i=0; i<R.size(); i++) {
+    //         pr("### " + i + "\n");
+    //         for (int j=0; j<R.get(i).Block.length; j++) {
+    //             pr(R.get(i).Block[j] + "\t" + (char)R.get(i).Block[j] + "\n");
+    //         }
+    //         pr("---\n");
+    //         for (int j=0; j<R.get(i).Starts.length; j++) {
+    //             pr(R.get(i).Starts[j] + "\n");
+    //         }
+    //     }
+    // }
 
-    public static int FindBlockResult=0;
+    // public static int FindBlockResult=0;
 
-    static class BlocksClass {
-        byte[] Block;
-        int[] Starts;
-    }
+    // static class BlocksClass {
+    //     byte[] Block;
+    //     int[] Starts;
+    // }
 
-    static class FindBlockClass {
-        boolean f=false;
-        int i;
-    }
+    // static class FindBlockClass {
+    //     boolean f=false;
+    //     int i;
+    // }
 
-    // функция ищет в списке R объект с полем Block[] равным передаваемому параметру Block[]
-    public static FindBlockClass FindBlock(ArrayList<BlocksClass> R, byte[] Block) {
-        FindBlockClass Result = new FindBlockClass();
-        for (int i=0; i<R.size(); i++) {
-            BlocksClass tmp = R.get(i);
-            if (tmp.Block.length==Block.length) {
-                boolean f=true;
-                for(int j=0; j<Bl_Length; j++) {
-                    if (tmp.Block[j] != Block[j]) {
-                        f=false;
-                        break;
-                    }
-                }
-                if (f) {
-                    Result.f=true;
-                    Result.i=i;
-                    break;
-                }
-            }
-        }
-        return Result;
-    }
+    // // функция ищет в списке R объект с полем Block[] равным передаваемому параметру Block[]
+    // public static FindBlockClass FindBlock(ArrayList<BlocksClass> R, byte[] Block) {
+    //     FindBlockClass Result = new FindBlockClass();
+    //     for (int i=0; i<R.size(); i++) {
+    //         BlocksClass tmp = R.get(i);
+    //         if (tmp.Block.length==Block.length) {
+    //             boolean f=true;
+    //             for(int j=0; j<Bl_Length; j++) {
+    //                 if (tmp.Block[j] != Block[j]) {
+    //                     f=false;
+    //                     break;
+    //                 }
+    //             }
+    //             if (f) {
+    //                 Result.f=true;
+    //                 Result.i=i;
+    //                 break;
+    //             }
+    //         }
+    //     }
+    //     return Result;
+    // }
 
     public static byte[] LoadFile (String Path) throws IOException {
         byte[] x = null;
